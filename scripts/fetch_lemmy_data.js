@@ -3,7 +3,7 @@ import fs from "fs";
 import fetch from "node-fetch";
 
 const INSTANCE_URL = "https://lemmy.world";
-const CSV_FILE = "lemmy_communities_data.csv";
+const CSV_FILE = "lemmy_communities.csv";
 
 // --- fetch all communities ---
 async function fetchJSON(endpoint, params = {}) {
