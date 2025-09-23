@@ -21,7 +21,7 @@ async function getCommunities() {
     const data = await fetchJSON("/api/v3/community/list", { page });
     if (!data?.communities?.length) break;
     out.push(...data.communities);
-    if (data.communities.length < 50) break;
+    if (data.communities.length < 10) break;
     page++;
   }
   return out.map(c => ({
