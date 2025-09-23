@@ -1,0 +1,32 @@
+name: Fetch Lemmy Data Daily
+
+on:
+  schedule:
+    - cron: '0 2 * * *'   # run every day at 02:00 UTC
+  workflow_dispatch:      # allow manual trigger from Actions tab
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install node-fetch@2
+
+      - name: Run fetch script
+        run: node scripts/fetch_lemmy_data.js
+
+      - name: Commit & push CSV
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add lemmy_communities.csv
+          git commit -m "Daily Lemmy data: $(date -u '+%Y-%m-%d %H:%M:%S')"
+          git push
