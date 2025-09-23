@@ -94,5 +94,6 @@
   "engines": {
     "node": ">=20.0.0"
   },
+  "type": "module",
   "packageManager": "npm@10.8.2"
 }
