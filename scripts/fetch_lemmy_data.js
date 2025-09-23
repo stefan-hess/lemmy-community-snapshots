@@ -14,16 +14,15 @@ async function fetchJSON(endpoint, params = {}) {
   return res.json();
 }
 
-async function getCommunities(max = 2000) {
+async function getCommunities() {
   const out = [];
   let page = 1;
-  while (out.length < max) {
-    const data = await fetchJSON("/api/v3/community/list", { page, sort: "TopAll" });
+  while (true) {
+    const data = await fetchJSON("/api/v3/community/list", { page });
     if (!data?.communities?.length) break;
     out.push(...data.communities);
     if (data.communities.length < 50) break;
     page++;
-    if (page > 100) break;
   }
   return out.map(c => ({
     name: c.community?.name ?? "",

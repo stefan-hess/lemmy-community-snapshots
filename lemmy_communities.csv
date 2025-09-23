@@ -1,10 +1,1 @@
-2025-09-23T12:01:21.906Z,"technology","lemmy.world",75421,16744,723186
-2025-09-23T12:01:21.906Z,"linux","lemmy.ml",58389,8143,206827
-2025-09-23T12:01:21.906Z,"memes","lemmy.ml",52472,13052,278701
-2025-09-23T12:01:21.906Z,"selfhosted","lemmy.world",51679,5040,122643
-2025-09-23T12:01:21.906Z,"asklemmy","lemmy.ml",50561,7449,356751
-2025-09-23T12:01:21.906Z,"world","lemmy.world",49957,24903,408995
-2025-09-23T12:01:21.906Z,"nostupidquestions","lemmy.world",43616,4830,189038
-2025-09-23T12:01:21.906Z,"games","lemmy.world",42416,7325,157417
-2025-09-23T12:01:21.906Z,"mildlyinfuriating","lemmy.world",42180,1485,87878
-2025-09-23T12:01:21.906Z,"privacy","lemmy.ml",41972,3952,100680
+"fetch_date","community_name","instance","subscribers","posts","comments"

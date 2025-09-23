@@ -132,7 +132,7 @@ export default function DashboardPage() {
 							<th className="px-4 py-2 text-right">Subscribers</th>
 							<th className="px-4 py-2 text-right">Total Posts</th>
 							<th className="px-4 py-2 text-right">Keyword Matches</th>
-							  <th className="px-4 py-2 text-right">Growth % (24h/7d/30d/1y)</th>
+							<th className="px-4 py-2 text-right">Growth % (24h/7d/30d/1y)</th>
 						</tr>
 					</thead>
 					<tbody>
