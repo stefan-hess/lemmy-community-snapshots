@@ -9,13 +9,17 @@ const CSV_FILE = "lemmy_communities.csv";
 async function fetchJSON(endpoint, params = {}) {
     const url = new URL(endpoint, INSTANCE_URL);
     Object.keys(params).forEach(k => url.searchParams.append(k, params[k]));
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const res = await fetch(url, { headers: { accept: "application/json" } });
+    if (!res.ok) {
+        let body = "";
+        try { body = await res.text(); } catch {}
+        throw new Error(`HTTP ${res.status} for ${url.toString()} :: ${body.slice(0,200)}`);
+    }
     return res.json();
 }
 
 async function getCommunities() {
-  const PAGE_SIZE = 100;
+  const PAGE_SIZE = 50;
     const out = [];
     let page = 1;
     while (true) {
