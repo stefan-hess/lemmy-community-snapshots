@@ -19,7 +19,7 @@ async function getCommunities() {
     const out = [];
     let page = 1;
     while (true) {
-    const data = await fetchJSON("/api/v3/community", { page, limit: PAGE_SIZE });
+    const data = await fetchJSON(`${BASE_URL}/api/v3/community/list`, { page, limit: PAGE_SIZE });
     if (!data?.communities?.length) break;
     out.push(...data.communities);
     if (data.communities.length < PAGE_SIZE) break;
