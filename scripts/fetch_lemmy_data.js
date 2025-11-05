@@ -39,25 +39,28 @@ async function getCommunities() {
 }
 
 (async () => {
-    const date = new Date().toISOString();
-    const communities = await getCommunities();
+  const date = new Date().toISOString();
+  let communities = await getCommunities();
+
+  // filter: only communities with at least 10 subscribers
+  communities = communities.filter(c => typeof c.subscribers === 'number' && c.subscribers >= 10);
 
   // sort by subscribers for consistency
-    communities.sort((a, b) => b.subscribers - a.subscribers);
+  communities.sort((a, b) => b.subscribers - a.subscribers);
 
   // If the CSV does not exist, create header
-    if (!fs.existsSync(CSV_FILE)) {
+  if (!fs.existsSync(CSV_FILE)) {
     fs.writeFileSync(
-        CSV_FILE,
-        "date,name,instance,subscribers,posts,comments\n",
-        "utf8"
+      CSV_FILE,
+      "date,name,instance,subscribers,posts,comments\n",
+      "utf8"
     );
-    }
+  }
 
-    const rows = communities.map(c =>
+  const rows = communities.map(c =>
     `${date},"${c.name}","${c.instance}",${c.subscribers},${c.posts},${c.comments}`
-    );
+  );
 
-    fs.appendFileSync(CSV_FILE, rows.join("\n") + "\n", "utf8");
-    console.log(`Appended ${communities.length} rows for ${date}`);
+  fs.appendFileSync(CSV_FILE, rows.join("\n") + "\n", "utf8");
+  console.log(`Appended ${communities.length} rows for ${date}`);
 })();

@@ -3,12 +3,34 @@
 import React, { useEffect, useState } from "react";
 
 type Community = {
-    id?: number | null;
-    name: string;
+    fetch_date: string;
+    community_name: string;
+    instance: string;
     subscribers: number;
-    posts?: number;
-    comments?: number;
+    posts: number;
+    comments: number;
 };
+
+type DashboardResponse = {
+    communities: Community[];
+};
+
+function isDashboardResponse(x: unknown): x is DashboardResponse {
+    return !!x && typeof x === "object" && Array.isArray((x as { communities?: unknown }).communities);
+}
+
+function parseCommunityEntry(entry: unknown): Community | null {
+    if (!entry || typeof entry !== "object") return null;
+    const e = entry as Record<string, unknown>;
+    return {
+        fetch_date: typeof e.fetch_date === "string" ? e.fetch_date : "",
+        community_name: typeof e.community_name === "string" ? e.community_name : "",
+        instance: typeof e.instance === "string" ? e.instance : "",
+        subscribers: typeof e.subscribers === "number" ? e.subscribers : Number(e.subscribers),
+        posts: typeof e.posts === "number" ? e.posts : Number(e.posts),
+        comments: typeof e.comments === "number" ? e.comments : Number(e.comments),
+    };
+}
 
 export default function DashboardPage() {
     const [communities, setCommunities] = useState<Community[]>([]);
@@ -24,45 +46,29 @@ export default function DashboardPage() {
                     try {
                         const res = await fetch(`/api/lemmy-dashboard?size=${encodeURIComponent(selectedSize)}`);
                         if (!res.ok) throw new Error("Failed to fetch dashboard data");
-                        const data: any = await res.json();
+                        const data: unknown = await res.json();
                         // Debug: log the raw API response
                         if (typeof window !== "undefined") {
                             // Only log in browser
-                            // eslint-disable-next-line no-console
                             console.log("[Lemmy Dashboard] Raw API response:", data);
                         }
                         // If backend returns a flat `communities` array (name, subscribers, posts, comments), use it directly.
-                        if (data && Array.isArray(data.communities)) {
-                            setCommunities(data.communities.slice(0, 50));
-                        } else {
-                            // fallback to older mappings
-                            let arr: any[] = [];
-                            if (Array.isArray(data)) arr = data;
-                            else if (data && Array.isArray(data.stats)) arr = data.stats;
-                            else {
-                                const arrProp = Object.values(data || {}).find((v) => Array.isArray(v));
-                                if (arrProp) arr = arrProp as any[];
+                        if (isDashboardResponse(data)) {
+                            if (!Array.isArray(data.communities)) {
+                                console.error("API response 'communities' is not an array:", data.communities);
+                                setCommunities([]);
+                            } else {
+                                const comms: Community[] = data.communities
+                                    .map((entry) => parseCommunityEntry(entry))
+                                    .filter((c): c is Community => !!c && typeof c.community_name === "string" && typeof c.subscribers === "number");
+                                setCommunities(comms.slice(0, 50));
                             }
-                            const comms: Community[] = arr.map((entry) => {
-                                if (entry && entry.community && entry.counts) {
-                                    return {
-                                        name: entry.community.name,
-                                        subscribers: entry.counts.subscribers,
-                                        posts: entry.counts.posts,
-                                        comments: entry.counts.comments,
-                                    };
-                                }
-                                return {
-                                    name: entry?.name ?? "",
-                                    subscribers: entry?.subscribers ?? 0,
-                                    posts: entry?.posts ?? entry?.totalPosts ?? 0,
-                                    comments: entry?.comments ?? 0,
-                                } as Community;
-                            }).filter(c => c && typeof c.name === "string" && typeof c.subscribers === "number");
-                            setCommunities(comms.slice(0, 50));
+                        } else {
+                            setCommunities([]);
                         }
-                    } catch (err: any) {
-                        setError(err.message || "Unknown error");
+                    } catch (err) {
+                        const msg = err instanceof Error ? err.message : "Unknown error";
+                        setError(msg);
                     } finally {
                         setLoading(false);
                     }
@@ -78,10 +84,20 @@ export default function DashboardPage() {
         try {
             const res = await fetch(`/api/lemmy-dashboard?size=${encodeURIComponent(size)}`);
             if (!res.ok) throw new Error('Failed to fetch dashboard data');
-            const data: any = await res.json();
-            setCommunities(data.communities?.slice(0,50) ?? []);
-        } catch (e: any) {
-            setError(e.message || 'Unknown error');
+            const data: unknown = await res.json();
+            if (isDashboardResponse(data)) {
+                if (!Array.isArray(data.communities)) {
+                    console.error("API response 'communities' is not an array:", data.communities);
+                    setCommunities([]);
+                } else {
+                    setCommunities(data.communities.slice(0, 50));
+                }
+            } else {
+                setCommunities([]);
+            }
+        } catch (e) {
+            const msg = e instanceof Error ? e.message : 'Unknown error';
+            setError(msg);
         } finally {
             setLoading(false);
         }
@@ -109,7 +125,7 @@ export default function DashboardPage() {
                             <th className="px-4 py-2 text-right">Subscribers</th>
                             <th className="px-4 py-2 text-right">Posts</th>
                             <th className="px-4 py-2 text-right">Comments</th>
-                            <th className="px-4 py-2 text-right">Keyword Hits</th>
+                            {/* Keyword Hits column removed */}
                             <th className="px-4 py-2 text-left">Instance</th>
                         </tr>
                     </thead>
@@ -123,14 +139,13 @@ export default function DashboardPage() {
                             return true;
                         })
                         .slice(0, visibleCount)
-                        .map((c) => (
-                                    <tr key={c.id ?? c.name} className="border-t">
-                                <td className="px-4 py-2">{c.name}</td>
+                        .map((c, idx) => (
+                            <tr key={c.fetch_date + c.community_name + c.instance + idx} className="border-t">
+                                <td className="px-4 py-2">{c.community_name}</td>
                                 <td className="px-4 py-2 text-right">{typeof c.subscribers === "number" ? c.subscribers.toLocaleString() : 0}</td>
                                 <td className="px-4 py-2 text-right">{typeof c.posts === "number" ? c.posts.toLocaleString() : "-"}</td>
                                 <td className="px-4 py-2 text-right">{typeof c.comments === "number" ? c.comments.toLocaleString() : "-"}</td>
-                                <td className="px-4 py-2 text-right">{typeof (c as any).keywordsCount === "number" ? (c as any).keywordsCount.toLocaleString() : 0}</td>
-                                <td className="px-4 py-2 text-left">{(c as any).instance ?? "-"}</td>
+                                <td className="px-4 py-2 text-left">{c.instance ?? "-"}</td>
                             </tr>
                         ))}
                     </tbody>
